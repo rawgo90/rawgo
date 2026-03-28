@@ -302,7 +302,12 @@ function togglePanel() {
 }
 
 function openFullscreen() {
-  window.open(window.location.href, '_blank');
+  // iframe 안이면 새 탭으로, 독립 탭이면 홈으로
+  if (window.self !== window.top) {
+    window.open(window.location.href, '_blank');
+  } else {
+    window.location.href = 'https://rawgo.co.kr';
+  }
 }
 
 buildSceneList();
