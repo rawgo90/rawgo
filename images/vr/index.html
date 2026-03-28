@@ -1,123 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<title>cyber modelhouse</title>
-<meta charset="utf-8">
-<meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
-<style> @-ms-viewport { width: device-width; } </style>
-<link rel="stylesheet" href="vendor/reset.min.css">
-<link rel="stylesheet" href="style.css">
-</head>
-<body class="multiple-scenes view-control-buttons">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VR Walkthrough</title>
 
-<div id="pano"></div>
+<!-- Pannellum -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
-<div id="sceneList">
-  <ul class="scenes">
-    
-      <a href="javascript:void(0)" class="scene" data-id="0-118vr_">
-        <li class="text">118VR_가족욕실</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="1-118vr_">
-        <li class="text">118VR_거실</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="2-118vr_1">
-        <li class="text">118VR_룸1</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="3-118vr_1">
-        <li class="text">118VR_룸1드레스룸</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="4-118vr_2">
-        <li class="text">118VR_룸2</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="5-118vr_2">
-        <li class="text">118VR_룸2드레스룸</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="6-118vr_3">
-        <li class="text">118VR_룸3</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="7-118vr_3">
-        <li class="text">118VR_룸3드레스룸</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="8-118vr_4">
-        <li class="text">118VR_룸4</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="9-118vr_">
-        <li class="text">118VR_부부욕실</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="10-118vr_">
-        <li class="text">118VR_주방</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="11-118vr_">
-        <li class="text">118VR_주방팬트리</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="12-118vr_">
-        <li class="text">118VR_현관</li>
-      </a>
-    
-      <a href="javascript:void(0)" class="scene" data-id="13-118vr_">
-        <li class="text">118VR_현관팬트리</li>
-      </a>
-    
-  </ul>
-</div>
-
-<div id="titleBar">
-  <h1 class="sceneName"></h1>
-</div>
-
-<a href="javascript:void(0)" id="autorotateToggle">
-  <img class="icon off" src="img/play.png">
-  <img class="icon on" src="img/pause.png">
-</a>
-
-<a href="javascript:void(0)" id="fullscreenToggle">
-  <img class="icon off" src="img/fullscreen.png">
-  <img class="icon on" src="img/windowed.png">
-</a>
-
-<a href="javascript:void(0)" id="sceneListToggle">
-  <img class="icon off" src="img/expand.png">
-  <img class="icon on" src="img/collapse.png">
-</a>
-
-<a href="javascript:void(0)" id="viewUp" class="viewControlButton viewControlButton-1">
-  <img class="icon" src="img/up.png">
-</a>
-<a href="javascript:void(0)" id="viewDown" class="viewControlButton viewControlButton-2">
-  <img class="icon" src="img/down.png">
-</a>
-<a href="javascript:void(0)" id="viewLeft" class="viewControlButton viewControlButton-3">
-  <img class="icon" src="img/left.png">
-</a>
-<a href="javascript:void(0)" id="viewRight" class="viewControlButton viewControlButton-4">
-  <img class="icon" src="img/right.png">
-</a>
-<a href="javascript:void(0)" id="viewIn" class="viewControlButton viewControlButton-5">
-  <img class="icon" src="img/plus.png">
-</a>
-<a href="javascript:void(0)" id="viewOut" class="viewControlButton viewControlButton-6">
-  <img class="icon" src="img/minus.png">
-</a>
-
-<script src="vendor/screenfull.min.js" ></script>
-<script src="vendor/bowser.min.js" ></script>
-<script src="vendor/marzipano.js" ></script>
-
+<!-- ★ Marzipano에서 Export한 data.js 그대로 사용 -->
 <script src="data.js"></script>
-<script src="index.js"></script>
 
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  font-family: 'Arial', sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#viewer {
+  width: 100%;
+  height: 100vh;
+}
+
+/* 씬 목록 패널 */
+#scenePanel {
+  position: fixed;
+  top: 0; left: 0;
+  width: 200px;
+  height: 100vh;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(184,156,110,0.2);
+  z-index: 100;
+  overflow-y: auto;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+#scenePanel.hidden {
+  transform: translateX(-200px);
+}
+
+.panel-header {
+  padding: 1.2rem 1rem 0.8rem;
+  border-bottom: 1px solid rgba(184,156,110,0.15);
+}
+
+.panel-logo {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #b89c6e;
+  font-weight: 700;
+}
+
+.panel-subtitle {
+  font-size: 0.62rem;
+  color: #4a4540;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.scene-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(184,156,110,0.08);
+  color: #7a746a;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.scene-btn:hover {
+  background: rgba(184,156,110,0.08);
+  color: #d4bc96;
+}
+
+.scene-btn.active {
+  background: rgba(184,156,110,0.12);
+  color: #b89c6e;
+  border-left: 2px solid #b89c6e;
+}
+
+/* 패널 토글 버튼 */
+#togglePanel {
+  position: fixed;
+  top: 50%;
+  left: 200px;
+  transform: translateY(-50%);
+  z-index: 101;
+  background: rgba(10,10,10,0.85);
+  border: 1px solid rgba(184,156,110,0.3);
+  border-left: none;
+  color: #b89c6e;
+  width: 20px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  transition: left 0.3s ease;
+}
+
+#togglePanel.shifted {
+  left: 0px;
+}
+
+/* 씬 이름 */
+#sceneTitle {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,10,10,0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(184,156,110,0.2);
+  color: #b89c6e;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+/* 핫스팟 스타일 */
+.pnlm-hotspot-base.pnlm-scene {
+  background: rgba(184,156,110,0.85) !important;
+  border: 2px solid rgba(255,255,255,0.6) !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  box-shadow: 0 0 0 4px rgba(184,156,110,0.25), 0 0 16px rgba(184,156,110,0.4) !important;
+  animation: hotspotPulse 2s infinite !important;
+}
+
+@keyframes hotspotPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(184,156,110,0.25), 0 0 16px rgba(184,156,110,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(184,156,110,0.1), 0 0 24px rgba(184,156,110,0.6); }
+}
+
+.pnlm-tooltip span {
+  background: rgba(10,10,10,0.9) !important;
+  border: 1px solid rgba(184,156,110,0.3) !important;
+  color: #b89c6e !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.1em !important;
+  padding: 0.4rem 0.8rem !important;
+  border-radius: 2px !important;
+}
+
+#scenePanel::-webkit-scrollbar { width: 4px; }
+#scenePanel::-webkit-scrollbar-track { background: transparent; }
+#scenePanel::-webkit-scrollbar-thumb { background: rgba(184,156,110,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="viewer"></div>
+
+<div id="scenePanel">
+  <div class="panel-header">
+    <div class="panel-logo">RAWGO</div>
+    <div class="panel-subtitle">VR Walkthrough</div>
+  </div>
+  <div id="sceneList"></div>
+</div>
+
+<button id="togglePanel" onclick="togglePanel()">‹</button>
+<div id="sceneTitle">로딩 중...</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Marzipano data.js → Pannellum 자동 변환
+//
+// ★ 이미지 폴더 경로 설정
+//   data.js의 씬 name에서 파일명을 자동으로 찾습니다.
+//   예: "118VR_거실" → IMAGE_FOLDER + "118VR_거실.jpg"
+// ═══════════════════════════════════════════════════════
+
+const IMAGE_FOLDER = "images/";  // ← 이미지 폴더 경로 (끝에 / 포함)
+const IMAGE_EXT    = ".jpg";     // ← 이미지 확장자
+
+// 라디안 → 도 변환
+function toDeg(rad) { return rad * 180 / Math.PI; }
+
+// data.js의 씬 id → 씬 name 매핑 (툴팁용)
+const idToName = {};
+APP_DATA.scenes.forEach(s => {
+  // "118VR_거실" → "거실" (prefix 제거)
+  const shortName = s.name.replace(/^[^_]+_/, '');
+  idToName[s.id] = shortName;
+});
+
+// Marzipano 씬 → Pannellum 설정으로 변환
+function convertScene(mzScene) {
+  const shortName = mzScene.name.replace(/^[^_]+_/, '');
+  const iv = mzScene.initialViewParameters;
+
+  const hotspots = mzScene.linkHotspots.map(h => ({
+    type: "scene",
+    sceneId: h.target,
+    yaw: toDeg(h.yaw),
+    pitch: toDeg(h.pitch),
+    text: idToName[h.target] || h.target,
+    cssClass: "pnlm-scene"
+  }));
+
+  return {
+    id: mzScene.id,
+    title: shortName,
+    fullTitle: mzScene.name,
+    config: {
+      type: "equirectangular",
+      panorama: IMAGE_FOLDER + mzScene.name + IMAGE_EXT,
+      autoLoad: true,
+      autoRotate: -1.5,
+      autoRotateInactivityDelay: 4000,
+      hfov: toDeg(iv.fov),
+      yaw: toDeg(iv.yaw || 0),
+      pitch: toDeg(iv.pitch || 0),
+      hotSpots: hotspots,
+      showControls: true,
+      showFullscreenCtrl: true,
+      showZoomCtrl: true,
+      strings: {
+        loadButtonLabel: "클릭하여 시작",
+        loadingLabel: "로딩 중..."
+      }
+    }
+  };
+}
+
+// 전체 씬 변환
+const scenes = APP_DATA.scenes.map(convertScene);
+
+// ═══════════════════════════════════════════
+// 뷰어
+// ═══════════════════════════════════════════
+let viewer = null;
+let panelVisible = true;
+
+function switchScene(sceneId) {
+  const scene = scenes.find(s => s.id === sceneId);
+  if (!scene) return;
+
+  if (viewer) { viewer.destroy(); viewer = null; }
+
+  viewer = pannellum.viewer('viewer', scene.config);
+
+  document.getElementById('sceneTitle').textContent = scene.title;
+
+  document.querySelectorAll('.scene-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.id === sceneId);
+  });
+}
+
+function buildSceneList() {
+  const list = document.getElementById('sceneList');
+  scenes.forEach(scene => {
+    const btn = document.createElement('button');
+    btn.className = 'scene-btn';
+    btn.dataset.id = scene.id;
+    btn.textContent = scene.title;
+    btn.onclick = () => switchScene(scene.id);
+    list.appendChild(btn);
+  });
+}
+
+function togglePanel() {
+  panelVisible = !panelVisible;
+  document.getElementById('scenePanel').classList.toggle('hidden', !panelVisible);
+  document.getElementById('togglePanel').classList.toggle('shifted', !panelVisible);
+  document.getElementById('togglePanel').textContent = panelVisible ? '‹' : '›';
+}
+
+// 시작
+buildSceneList();
+// 첫 씬 = 거실 (id: 1-118vr_), 없으면 첫번째 씬
+const startScene = scenes.find(s => s.id === '1-118vr_') || scenes[0];
+switchScene(startScene.id);
+</script>
 </body>
 </html>
