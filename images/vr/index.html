@@ -5,11 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VR Walkthrough</title>
 
-<!-- Pannellum -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-
-<!-- ★ Marzipano에서 Export한 data.js 그대로 사용 -->
 <script src="data.js"></script>
 
 <style>
@@ -27,7 +24,7 @@ body {
   height: 100vh;
 }
 
-/* 씬 목록 패널 */
+/* ── 씬 목록 패널 ── */
 #scenePanel {
   position: fixed;
   top: 0; left: 0;
@@ -82,54 +79,72 @@ body {
   letter-spacing: 0.03em;
 }
 
-.scene-btn:hover {
-  background: rgba(184,156,110,0.08);
-  color: #d4bc96;
-}
+.scene-btn:hover { background: rgba(184,156,110,0.08); color: #d4bc96; }
+.scene-btn.active { background: rgba(184,156,110,0.12); color: #b89c6e; border-left: 2px solid #b89c6e; }
 
-.scene-btn.active {
-  background: rgba(184,156,110,0.12);
-  color: #b89c6e;
-  border-left: 2px solid #b89c6e;
-}
-
-/* 패널 토글 버튼 */
+/* ── 패널 토글 탭 ── */
 #togglePanel {
   position: fixed;
   top: 50%;
   left: 200px;
   transform: translateY(-50%);
-  z-index: 101;
-  background: rgba(10,10,10,0.85);
-  border: 1px solid rgba(184,156,110,0.3);
-  border-left: none;
-  color: #b89c6e;
-  width: 20px;
-  height: 48px;
+  z-index: 102;
+  background: #b89c6e;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  color: #0a0a0a;
+  width: 28px;
+  height: 56px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 900;
+  transition: left 0.3s ease, background 0.2s;
+  box-shadow: 3px 0 10px rgba(0,0,0,0.5);
+}
+
+#togglePanel:hover { background: #d4bc96; }
+#togglePanel.shifted { left: 0; }
+
+/* ── 전체화면 버튼 — 우측 상단 ── */
+#fullscreenBtn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 102;
+  background: #b89c6e;
+  border: none;
+  border-radius: 4px;
+  color: #0a0a0a;
+  padding: 0.5rem 0.9rem;
   font-size: 0.7rem;
-  transition: left 0.3s ease;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  transition: background 0.2s;
 }
 
-#togglePanel.shifted {
-  left: 0px;
-}
+#fullscreenBtn:hover { background: #d4bc96; }
 
-/* 씬 이름 */
+/* ── 씬 이름 ── */
 #sceneTitle {
   position: fixed;
-  bottom: 2rem;
+  bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(10,10,10,0.75);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(184,156,110,0.2);
+  border: 1px solid rgba(184,156,110,0.25);
   color: #b89c6e;
-  padding: 0.5rem 1.5rem;
-  font-size: 0.75rem;
+  padding: 0.45rem 1.3rem;
+  font-size: 0.72rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   pointer-events: none;
@@ -137,7 +152,7 @@ body {
   white-space: nowrap;
 }
 
-/* 핫스팟 스타일 */
+/* ── 핫스팟 ── */
 .pnlm-hotspot-base.pnlm-scene {
   background: rgba(184,156,110,0.85) !important;
   border: 2px solid rgba(255,255,255,0.6) !important;
@@ -145,12 +160,12 @@ body {
   width: 28px !important;
   height: 28px !important;
   box-shadow: 0 0 0 4px rgba(184,156,110,0.25), 0 0 16px rgba(184,156,110,0.4) !important;
-  animation: hotspotPulse 2s infinite !important;
+  animation: pulse 2s infinite !important;
 }
 
-@keyframes hotspotPulse {
+@keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 4px rgba(184,156,110,0.25), 0 0 16px rgba(184,156,110,0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(184,156,110,0.1), 0 0 24px rgba(184,156,110,0.6); }
+  50%       { box-shadow: 0 0 0 8px rgba(184,156,110,0.1), 0 0 24px rgba(184,156,110,0.6); }
 }
 
 .pnlm-tooltip span {
@@ -164,7 +179,6 @@ body {
 }
 
 #scenePanel::-webkit-scrollbar { width: 4px; }
-#scenePanel::-webkit-scrollbar-track { background: transparent; }
 #scenePanel::-webkit-scrollbar-thumb { background: rgba(184,156,110,0.3); border-radius: 2px; }
 </style>
 </head>
@@ -181,118 +195,118 @@ body {
 </div>
 
 <button id="togglePanel" onclick="togglePanel()">‹</button>
+
+<button id="fullscreenBtn" onclick="openFullscreen()">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+  </svg>
+  전체화면
+</button>
+
 <div id="sceneTitle">로딩 중...</div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// Marzipano data.js → Pannellum 자동 변환
-//
-// ★ 이미지 폴더 경로 설정
-//   data.js의 씬 name에서 파일명을 자동으로 찾습니다.
-//   예: "118VR_거실" → IMAGE_FOLDER + "118VR_거실.jpg"
-// ═══════════════════════════════════════════════════════
+const IMAGE_FOLDER = "images/";
+const IMAGE_EXT    = ".jpg";
 
-const IMAGE_FOLDER = "images/";  // ← 이미지 폴더 경로 (끝에 / 포함)
-const IMAGE_EXT    = ".jpg";     // ← 이미지 확장자
-
-// 라디안 → 도 변환
 function toDeg(rad) { return rad * 180 / Math.PI; }
 
-// data.js의 씬 id → 씬 name 매핑 (툴팁용)
+// id → 짧은 이름 매핑
 const idToName = {};
 APP_DATA.scenes.forEach(s => {
-  // "118VR_거실" → "거실" (prefix 제거)
-  const shortName = s.name.replace(/^[^_]+_/, '');
-  idToName[s.id] = shortName;
+  idToName[s.id] = s.name.replace(/^[^_]+_/, '');
 });
 
-// Marzipano 씬 → Pannellum 설정으로 변환
-function convertScene(mzScene) {
-  const shortName = mzScene.name.replace(/^[^_]+_/, '');
-  const iv = mzScene.initialViewParameters;
-
-  const hotspots = mzScene.linkHotspots.map(h => ({
-    type: "scene",
-    sceneId: h.target,
-    yaw: toDeg(h.yaw),
-    pitch: toDeg(h.pitch),
-    text: idToName[h.target] || h.target,
-    cssClass: "pnlm-scene"
-  }));
-
-  return {
-    id: mzScene.id,
-    title: shortName,
-    fullTitle: mzScene.name,
-    config: {
-      type: "equirectangular",
-      panorama: IMAGE_FOLDER + mzScene.name + IMAGE_EXT,
-      autoLoad: true,
-      autoRotate: -1.5,
-      autoRotateInactivityDelay: 4000,
-      hfov: toDeg(iv.fov),
-      yaw: toDeg(iv.yaw || 0),
-      pitch: toDeg(iv.pitch || 0),
-      hotSpots: hotspots,
-      showControls: true,
-      showFullscreenCtrl: true,
-      showZoomCtrl: true,
-      strings: {
-        loadButtonLabel: "클릭하여 시작",
-        loadingLabel: "로딩 중..."
-      }
+// ═══════════════════════════════════════════
+// Pannellum 멀티씬 config 빌드
+// 모든 씬을 한번에 로드 → 핫스팟 클릭으로 씬 전환
+// ═══════════════════════════════════════════
+const multiConfig = {
+  default: {
+    firstScene: '1-118vr_',   // 시작 씬 (거실)
+    autoLoad: true,
+    autoRotate: -1.5,
+    autoRotateInactivityDelay: 4000,
+    showControls: true,
+    showFullscreenCtrl: false,
+    showZoomCtrl: true,
+    strings: {
+      loadButtonLabel: "클릭하여 시작",
+      loadingLabel: "로딩 중..."
     }
+  },
+  scenes: {}
+};
+
+APP_DATA.scenes.forEach(s => {
+  const iv = s.initialViewParameters;
+  multiConfig.scenes[s.id] = {
+    title: idToName[s.id],
+    type: "equirectangular",
+    panorama: IMAGE_FOLDER + s.name + IMAGE_EXT,
+    hfov: toDeg(iv.fov),
+    yaw: toDeg(iv.yaw || 0),
+    pitch: toDeg(iv.pitch || 0),
+    hotSpots: s.linkHotspots.map(h => ({
+      type: "scene",
+      sceneId: h.target,
+      yaw: toDeg(h.yaw),
+      pitch: toDeg(h.pitch),
+      text: idToName[h.target] || h.target,
+      cssClass: "pnlm-scene"
+    }))
   };
-}
+});
 
-// 전체 씬 변환
-const scenes = APP_DATA.scenes.map(convertScene);
+// 뷰어 초기화
+const viewer = pannellum.viewer('viewer', multiConfig);
 
-// ═══════════════════════════════════════════
-// 뷰어
-// ═══════════════════════════════════════════
-let viewer = null;
-let panelVisible = true;
+// 씬 전환 이벤트 → 씬 이름 + 패널 활성 상태 업데이트
+viewer.on('scenechange', function(sceneId) {
+  updateUI(sceneId);
+});
 
-function switchScene(sceneId) {
-  const scene = scenes.find(s => s.id === sceneId);
-  if (!scene) return;
-
-  if (viewer) { viewer.destroy(); viewer = null; }
-
-  viewer = pannellum.viewer('viewer', scene.config);
-
-  document.getElementById('sceneTitle').textContent = scene.title;
-
+function updateUI(sceneId) {
+  const name = idToName[sceneId] || sceneId;
+  document.getElementById('sceneTitle').textContent = name;
   document.querySelectorAll('.scene-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.id === sceneId);
   });
 }
 
+// 씬 목록 버튼 생성
 function buildSceneList() {
   const list = document.getElementById('sceneList');
-  scenes.forEach(scene => {
+  APP_DATA.scenes.forEach(s => {
     const btn = document.createElement('button');
     btn.className = 'scene-btn';
-    btn.dataset.id = scene.id;
-    btn.textContent = scene.title;
-    btn.onclick = () => switchScene(scene.id);
+    btn.dataset.id = s.id;
+    btn.textContent = idToName[s.id];
+    btn.onclick = () => {
+      viewer.loadScene(s.id);
+      updateUI(s.id);
+    };
     list.appendChild(btn);
   });
 }
 
+let panelVisible = true;
+
 function togglePanel() {
   panelVisible = !panelVisible;
   document.getElementById('scenePanel').classList.toggle('hidden', !panelVisible);
-  document.getElementById('togglePanel').classList.toggle('shifted', !panelVisible);
-  document.getElementById('togglePanel').textContent = panelVisible ? '‹' : '›';
+  const toggle = document.getElementById('togglePanel');
+  toggle.classList.toggle('shifted', !panelVisible);
+  toggle.textContent = panelVisible ? '‹' : '›';
+  toggle.style.left = panelVisible ? '200px' : '0px';
 }
 
-// 시작
+function openFullscreen() {
+  window.open(window.location.href, '_blank');
+}
+
 buildSceneList();
-// 첫 씬 = 거실 (id: 1-118vr_), 없으면 첫번째 씬
-const startScene = scenes.find(s => s.id === '1-118vr_') || scenes[0];
-switchScene(startScene.id);
+updateUI('1-118vr_');
 </script>
 </body>
 </html>
