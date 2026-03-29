@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAWGO AI Render v3</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8B6F2E;
+    --bg: #0A0A0A;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: rgba(201,168,76,0.15);
+    --text: #F0EDE8;
+    --text-dim: #888;
+    --text-muted: #444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; min-height:100vh; }
+
+  header {
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    background:rgba(10,10,10,0.95); backdrop-filter:blur(20px);
+  }
+  .logo { font-family:'DM Serif Display',serif; font-size:20px; letter-spacing:0.08em; color:var(--gold); }
+  .logo span { color:var(--text-dim); font-size:10px; font-family:'Syne',sans-serif; letter-spacing:0.2em; text-transform:uppercase; margin-left:10px; }
+  .header-right { display:flex; align-items:center; gap:8px; }
+  .api-input {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:8px 12px; color:var(--text); font-family:'Syne',sans-serif; font-size:11px;
+    width:240px; outline:none;
+  }
+  .api-input::placeholder { color:var(--text-muted); }
+  .model-select {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:8px 12px; color:var(--text); font-family:'Syne',sans-serif; font-size:11px; outline:none; cursor:pointer;
+  }
+
+  main { padding-top:66px; display:grid; grid-template-columns:340px 1fr; min-height:100vh; }
+
+  /* LEFT PANEL */
+  .left-panel {
+    border-right:1px solid var(--border); background:var(--bg2);
+    padding:20px 18px; display:flex; flex-direction:column; gap:16px;
+    overflow-y:auto; max-height:calc(100vh - 66px);
+  }
+
+  .sec-label {
+    font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold-dim);
+    margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .sec-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* Mode tabs */
+  .mode-tabs { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+  .mode-tab {
+    flex:1; padding:9px 4px; background:var(--bg3); border:none; color:var(--text-dim);
+    font-family:'Syne',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.1em;
+    text-transform:uppercase; cursor:pointer; transition:all 0.2s; border-right:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .mode-tab:last-child { border-right:none; }
+  .mode-tab.active { background:rgba(201,168,76,0.08); color:var(--gold); }
+  .mode-tab .tab-icon { font-size:14px; }
+
+  /* Image slots */
+  .img-slot {
+    border:1px dashed var(--border); border-radius:4px; aspect-ratio:16/10;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; background:var(--bg3);
+  }
+  .img-slot:hover { border-color:var(--gold-dim); }
+  .img-slot.filled { border-style:solid; border-color:rgba(201,168,76,0.25); }
+  .img-slot img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+  .slot-tag {
+    position:absolute; top:7px; left:7px;
+    background:rgba(0,0,0,0.75); border:1px solid var(--border);
+    padding:3px 7px; border-radius:2px; font-size:9px; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--gold-dim);
+  }
+  .slot-hint { font-size:11px; color:var(--text-muted); text-align:center; line-height:1.5; }
+  .slot-overlay {
+    position:absolute; inset:0; background:rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.2s; font-size:11px; color:white;
+  }
+  .img-slot.filled:hover .slot-overlay { opacity:1; }
+
+  /* Prompt */
+  .prompt-box {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:12px; color:var(--text); font-family:'Syne',sans-serif; font-size:12px;
+    width:100%; height:110px; resize:none; outline:none; line-height:1.7;
+  }
+  .prompt-box:focus { border-color:var(--gold-dim); }
+  .prompt-box::placeholder { color:var(--text-muted); font-size:11px; }
+
+  /* Quick presets */
+  .preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  .preset-btn {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:8px 8px; color:var(--text-dim); font-family:'Syne',sans-serif;
+    font-size:9px; letter-spacing:0.05em; cursor:pointer; transition:all 0.2s;
+    text-align:left; line-height:1.5;
+  }
+  .preset-btn:hover { border-color:var(--gold-dim); color:var(--gold); background:rgba(201,168,76,0.04); }
+  .preset-tag { display:block; font-size:8px; color:var(--gold-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:2px; }
+
+  /* Material target */
+  .target-input {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:9px 12px; color:var(--text); font-family:'Syne',sans-serif; font-size:11px;
+    width:100%; outline:none;
+  }
+  .target-input:focus { border-color:var(--gold-dim); }
+  .target-input::placeholder { color:var(--text-muted); font-size:10px; }
+
+  /* Render btn */
+  .render-btn {
+    background:var(--gold); color:#000; border:none; padding:13px;
+    border-radius:3px; font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; width:100%; transition:all 0.2s;
+  }
+  .render-btn:hover:not(:disabled) { background:var(--gold-light); box-shadow:0 6px 20px rgba(201,168,76,0.25); }
+  .render-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  .error-msg {
+    background:rgba(255,80,80,0.08); border:1px solid rgba(255,80,80,0.2);
+    border-radius:3px; padding:9px 12px; font-size:11px; color:#ff8080; display:none; line-height:1.5;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel { display:flex; flex-direction:column; }
+
+  /* Canvas area */
+  .canvas-area {
+    flex:1; position:relative; background:var(--bg);
+    display:flex; flex-direction:column;
+  }
+
+  /* Draw toolbar */
+  .draw-toolbar {
+    display:none; padding:10px 16px; border-bottom:1px solid var(--border);
+    background:var(--bg2); align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .draw-toolbar.visible { display:flex; }
+
+  .tool-btn {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:7px 12px; color:var(--text-dim); font-family:'Syne',sans-serif;
+    font-size:10px; letter-spacing:0.08em; cursor:pointer; transition:all 0.2s;
+  }
+  .tool-btn.active { background:rgba(201,168,76,0.1); color:var(--gold); border-color:var(--gold-dim); }
+  .tool-btn:hover:not(.active) { border-color:var(--border-hover); color:var(--text); }
+
+  .color-swatches { display:flex; gap:5px; align-items:center; }
+  .swatch {
+    width:20px; height:20px; border-radius:50%; cursor:pointer;
+    border:2px solid transparent; transition:all 0.15s;
+  }
+  .swatch.active { border-color:white; transform:scale(1.2); }
+
+  .size-slider {
+    -webkit-appearance:none; height:3px; background:var(--border);
+    border-radius:2px; outline:none; width:80px; cursor:pointer;
+  }
+  .size-slider::-webkit-slider-thumb {
+    -webkit-appearance:none; width:12px; height:12px;
+    background:var(--gold); border-radius:50%; cursor:pointer;
+  }
+
+  .draw-label { font-size:10px; color:var(--text-dim); letter-spacing:0.08em; }
+
+  /* Canvas wrapper */
+  .canvas-wrapper {
+    flex:1; position:relative; min-height:400px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+
+  #baseCanvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain;
+  }
+
+  #drawCanvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    cursor:crosshair; display:none;
+  }
+
+  .canvas-placeholder {
+    display:flex; flex-direction:column; align-items:center; gap:12px; color:var(--text-muted);
+  }
+
+  /* Result panel */
+  .result-panel {
+    border-top:1px solid var(--border); background:var(--bg2);
+    display:flex; flex-direction:column;
+  }
+
+  .result-header {
+    padding:10px 16px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+  }
+
+  .result-img-wrap {
+    position:relative; min-height:260px;
+    display:flex; align-items:center; justify-content:center; background:var(--bg);
+  }
+
+  .result-img-wrap img { max-width:100%; max-height:380px; object-fit:contain; }
+
+  .result-actions { display:flex; gap:8px; }
+
+  .action-btn {
+    background:var(--bg3); border:1px solid var(--border); border-radius:3px;
+    padding:6px 12px; color:var(--text-dim); font-family:'Syne',sans-serif;
+    font-size:10px; letter-spacing:0.08em; cursor:pointer; transition:all 0.2s;
+  }
+  .action-btn:hover { border-color:var(--gold-dim); color:var(--gold); }
+  .action-btn.gold { background:rgba(201,168,76,0.1); color:var(--gold); border-color:var(--gold-dim); }
+
+  .loading-spinner {
+    width:28px; height:28px; border:1px solid var(--border);
+    border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:11px; color:var(--gold-dim); letter-spacing:0.1em; animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  input[type=file] { display:none; }
+
+  .mode-desc-box {
+    background:var(--bg3); border:1px solid var(--border); border-left:2px solid var(--gold-dim);
+    border-radius:3px; padding:9px 12px; font-size:10px; color:var(--text-dim); line-height:1.6;
+  }
+
+  /* Draw mode instruction */
+  .draw-hint {
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.8); border:1px solid var(--border);
+    padding:6px 14px; border-radius:20px; font-size:10px; color:var(--gold-dim);
+    letter-spacing:0.1em; pointer-events:none; white-space:nowrap; display:none; z-index:10;
+  }
+
+  @media(max-width:900px) {
+    main { grid-template-columns:1fr; }
+    .left-panel { max-height:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RAWGO <span>AI Render v3</span></div>
+  <div class="header-right">
+    <input type="password" class="api-input" id="apiKey" placeholder="Google AI Studio API Key">
+    <select class="model-select" id="modelSelect">
+      <option value="gemini-2.5-flash-preview-04-17">Nano Banana · $0.039</option>
+      <option value="gemini-3.1-flash-image-preview" selected>Nano Banana 2 · $0.067</option>
+      <option value="gemini-3-pro-image-preview">Nano Banana Pro · $0.134</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT -->
+  <div class="left-panel">
+
+    <!-- Mode tabs -->
+    <div>
+      <div class="sec-label">모드</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-basic" onclick="setMode('basic')">
+          <span class="tab-icon">✦</span>기본변환
+        </button>
+        <button class="mode-tab" id="tab-moodboard" onclick="setMode('moodboard')">
+          <span class="tab-icon">◈</span>무드보드
+        </button>
+        <button class="mode-tab" id="tab-material" onclick="setMode('material')">
+          <span class="tab-icon">◉</span>재질지정
+        </button>
+        <button class="mode-tab" id="tab-draw" onclick="setMode('draw')">
+          <span class="tab-icon">✏️</span>드로잉
+        </button>
+      </div>
+    </div>
+
+    <div class="mode-desc-box" id="modeDesc">소스 이미지를 업로드하고 포토리얼로 변환합니다.</div>
+
+    <!-- Source slot (always) -->
+    <div>
+      <div class="sec-label">소스 이미지</div>
+      <div class="img-slot" id="slot1" onclick="triggerUpload(1)">
+        <div class="slot-tag">Source</div>
+        <div class="slot-hint" id="hint1">클레이 / 뷰포트<br>이미지 업로드</div>
+        <div class="slot-overlay">이미지 변경</div>
+      </div>
+      <input type="file" id="file1" accept="image/*" onchange="loadSlot(1,this)">
+    </div>
+
+    <!-- Slot 2 (moodboard / material) -->
+    <div id="slot2wrap" style="display:none;">
+      <div class="sec-label" id="slot2label">무드보드</div>
+      <div class="img-slot" id="slot2" onclick="triggerUpload(2)">
+        <div class="slot-tag" id="slot2tag">Moodboard</div>
+        <div class="slot-hint" id="hint2">무드보드 업로드</div>
+        <div class="slot-overlay">이미지 변경</div>
+      </div>
+      <input type="file" id="file2" accept="image/*" onchange="loadSlot(2,this)">
+    </div>
+
+    <!-- Material target -->
+    <div id="targetWrap" style="display:none;">
+      <div class="sec-label">적용 대상</div>
+      <input type="text" class="target-input" id="matTarget" placeholder="예: 소파, 바닥재, 벽면, 커튼...">
+    </div>
+
+    <!-- Draw tools (draw mode) -->
+    <div id="drawToolsWrap" style="display:none;">
+      <div class="sec-label">드로잉 도구</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+        <button class="tool-btn active" id="tool-pen" onclick="setTool('pen')">✏️ 펜</button>
+        <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">⬜ 지우개</button>
+        <button class="tool-btn" id="tool-clear" onclick="clearCanvas()" style="color:#ff6060;">✕ 전체삭제</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+        <span class="draw-label">색상</span>
+        <div class="color-swatches">
+          <div class="swatch active" style="background:#FF3B3B;" onclick="setColor('#FF3B3B',this)"></div>
+          <div class="swatch" style="background:#3BFF6E;" onclick="setColor('#3BFF6E',this)"></div>
+          <div class="swatch" style="background:#3B8EFF;" onclick="setColor('#3B8EFF',this)"></div>
+          <div class="swatch" style="background:#FFE03B;" onclick="setColor('#FFE03B',this)"></div>
+          <div class="swatch" style="background:#FF3BFF;" onclick="setColor('#FF3BFF',this)"></div>
+          <div class="swatch" style="background:#ffffff;" onclick="setColor('#ffffff',this)" style="border:1px solid #444;"></div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="draw-label">굵기</span>
+        <input type="range" class="size-slider" id="brushSize" min="2" max="30" value="8">
+        <span class="draw-label" id="brushSizeLabel">8px</span>
+      </div>
+    </div>
+
+    <!-- Prompt -->
+    <div>
+      <div class="sec-label">프롬프트</div>
+      <textarea class="prompt-box" id="prompt" placeholder="프롬프트를 입력하거나 아래 프리셋을 선택하세요"></textarea>
+    </div>
+
+    <!-- Presets -->
+    <div>
+      <div class="sec-label">프리셋</div>
+      <div class="preset-grid" id="presetGrid"></div>
+    </div>
+
+    <div class="error-msg" id="errMsg"></div>
+
+    <button class="render-btn" id="renderBtn" onclick="startRender()">✦ Render</button>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="canvas-area">
+
+      <!-- Draw toolbar overlay -->
+      <div class="draw-toolbar" id="drawToolbar">
+        <span style="font-size:10px;color:var(--gold-dim);letter-spacing:0.1em;">✏️ DRAW MODE</span>
+        <span style="font-size:10px;color:var(--text-muted);">이미지 위에 직접 그린 후 Render</span>
+      </div>
+
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <div class="canvas-placeholder" id="canvasPlaceholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <div style="font-size:12px;color:#222;letter-spacing:0.15em;">소스 이미지를 업로드하세요</div>
+        </div>
+        <img id="baseCanvas" style="display:none;" alt="source">
+        <canvas id="drawCanvas"></canvas>
+        <div class="draw-hint" id="drawHint">이미지 위에 그려서 지시사항을 전달하세요</div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-panel">
+      <div class="result-header">
+        <div class="sec-label" style="margin:0;">렌더링 결과</div>
+        <div class="result-actions" id="resultActions" style="display:none;">
+          <button class="action-btn gold" onclick="useResultAsSource()">→ 소스로 사용</button>
+          <button class="action-btn" onclick="downloadResult()">↓ 저장</button>
+        </div>
+      </div>
+      <div class="result-img-wrap" id="resultWrap">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div style="font-size:11px;color:#222;letter-spacing:0.15em;">RENDER RESULT</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ─── State ───────────────────────────────────────
+let mode = 'basic';
+let imgs = {1:null, 2:null};
+let mimes = {1:null, 2:null};
+let lastResult = null;
+
+// Draw state
+let drawing = false;
+let drawTool = 'pen';
+let drawColor = '#FF3B3B';
+let brushSz = 8;
+let drawCtx = null;
+let baseImg = null;
+
+// ─── Mode configs ─────────────────────────────────
+const MODES = {
+  basic: {
+    desc: '소스 이미지(클레이/뷰포트)를 포토리얼 렌더링으로 변환합니다.',
+    presets: [
+      {tag:'인테리어', label:'기본 변환', prompt:`Transform this 3D model into a photorealistic interior rendering.\nMaintain exact camera angle, furniture layout, proportions.\nRemove all sketch lines. Apply photorealistic materials and natural daylight.\nResult must look like a real photograph.`},
+      {tag:'럭셔리', label:'럭셔리 펜트하우스', prompt:`Transform into photorealistic luxury penthouse interior.\nKeep exact camera angle and all furniture positions.\nApply: polished marble floor, premium fabrics, glass railings,\ncity skyline through windows, soft natural daylight.\nResult must look like a real photograph.`},
+      {tag:'오피스', label:'모던 오피스', prompt:`Transform into photorealistic modern office interior.\nMaintain camera angle and furniture layout.\nApply clean materials, professional lighting, natural daylight.\nResult must look like a real architectural photograph.`},
+      {tag:'야간', label:'야간 조명', prompt:`Transform into photorealistic interior at night.\nMaintain camera angle and furniture layout.\nApply warm artificial lighting, glowing pendants, dark windows showing city lights.\nResult must look like a real night photograph.`},
+      {tag:'무드보드추출', label:'무드보드 추출', prompt:`Analyze this interior rendering and extract a professional moodboard.\nCreate a clean flat-lay composition showing:\n- Main color palette (5-6 color swatches with hex values)\n- Material samples (flooring, wall, fabric textures)\n- Key furniture style references\n- Overall mood and atmosphere keywords\nPresent as a professional interior design moodboard layout.`},
+      {tag:'스타일분석', label:'스타일 분석', prompt:`Analyze this interior image and create a detailed style reference board.\nExtract: design style name, key materials, color story, lighting mood,\nfurniture period/style, and decorative elements.\nPresent as a structured design brief with visual material palette.`},
+    ]
+  },
+  moodboard: {
+    desc: '소스 이미지 + 무드보드 이미지를 함께 업로드하면 무드보드의 재질/색상/분위기를 소스에 적용합니다.',
+    presets: [
+      {tag:'전체적용', label:'재질+색상 전체', prompt:`Use the FIRST image as the 3D model source.\nUse the SECOND image as material and color palette reference.\nApply ALL materials, colors, textures, and atmosphere from the second image to the interior.\nMaintain exact camera angle, furniture positions, and spatial layout.\nResult must look like a real photograph.`},
+      {tag:'색상만', label:'색상 팔레트만', prompt:`Use the FIRST image as the 3D model source.\nExtract only the color palette from the SECOND image.\nApply these colors to the interior while maintaining all furniture positions and camera angle.\nResult must look like a real photograph.`},
+      {tag:'분위기', label:'분위기/스타일', prompt:`Use the FIRST image as the 3D model source.\nReference the overall style, mood and lighting from the SECOND image.\nApply this atmosphere to the interior while maintaining exact furniture layout and camera angle.\nResult must look like a real photograph.`},
+      {tag:'완전일치', label:'완전 일치 적용', prompt:`Use the FIRST image as the layout source.\nUse the SECOND image as strict material, color, brightness and reflection reference.\nApply every matching material from the second image to corresponding elements in the first.\nMaintain camera angle and furniture positions exactly.\nResult must look like a real photograph.`},
+    ]
+  },
+  material: {
+    desc: '소스 이미지 + 재질 샘플을 업로드하고 적용 대상을 입력하세요. (예: 소파, 바닥, 벽)',
+    presets: [
+      {tag:'지정위치', label:'지정 위치에 적용', prompt:'[대상 입력 후 클릭]'},
+      {tag:'바닥재', label:'바닥재 교체', prompt:`Use the FIRST image as interior source.\nApply the material/texture from the SECOND image to the FLOOR only.\nMaintain all other materials, camera angle, furniture positions exactly.\nResult must look like a real photograph.`},
+      {tag:'벽면', label:'벽 마감재 교체', prompt:`Use the FIRST image as interior source.\nApply the material from the SECOND image to the WALLS only.\nMaintain all other materials, camera angle, furniture positions exactly.\nResult must look like a real photograph.`},
+      {tag:'패브릭', label:'소파/패브릭', prompt:`Use the FIRST image as interior source.\nApply the fabric from the SECOND image to all SOFAS and CHAIRS only.\nMaintain all other materials, camera angle, furniture positions exactly.\nResult must look like a real photograph.`},
+    ]
+  },
+  draw: {
+    desc: '소스 이미지 위에 직접 그려서 지시사항을 전달하세요. 빨간색으로 사람 위치 표시, 파란색으로 교체할 가구 표시 등.',
+    presets: [
+      {tag:'사람추가', label:'표시 위치에 사람', prompt:`The red marks on this image indicate where to ADD PEOPLE.\nAdd realistic people (standing or sitting) exactly at the marked positions.\nMake people look natural and proportional to the space.\nMaintain all other elements of the interior exactly.\nResult must look like a real photograph.`},
+      {tag:'사람제거', label:'표시된 사람 제거', prompt:`The red marks on this image indicate PEOPLE TO REMOVE.\nRemove all people at the marked positions and fill with the background naturally.\nMaintain all other elements of the interior exactly.\nResult must look like a real photograph.`},
+      {tag:'가구교체', label:'표시 가구 교체', prompt:`The colored marks indicate furniture items to REPLACE or MODIFY.\nReplace the marked furniture with higher quality, more realistic versions.\nMaintain the same position, scale and overall composition.\nResult must look like a real photograph.`},
+      {tag:'색상변경', label:'표시 부분 색상변경', prompt:`The colored marks on this image indicate areas to CHANGE COLOR/MATERIAL.\nChange the color or material of the marked areas as suggested by the marking color.\nMaintain everything else exactly.\nResult must look like a real photograph.`},
+      {tag:'조명추가', label:'표시 위치에 조명', prompt:`The marks on this image indicate where to ADD LIGHTING EFFECTS.\nAdd realistic light sources and illumination effects at the marked positions.\nBlend naturally with existing lighting.\nResult must look like a real photograph.`},
+      {tag:'식물추가', label:'표시 위치에 식물', prompt:`The marks indicate positions to ADD PLANTS or GREENERY.\nAdd realistic indoor plants at the marked positions, proportional to the space.\nMaintain all other elements exactly.\nResult must look like a real photograph.`},
+    ]
+  }
+};
+
+// ─── Mode switch ──────────────────────────────────
+function setMode(m) {
+  mode = m;
+  ['basic','moodboard','material','draw'].forEach(k => {
+    document.getElementById('tab-'+k).classList.toggle('active', k===m);
+  });
+
+  document.getElementById('modeDesc').textContent = MODES[m].desc;
+  document.getElementById('slot2wrap').style.display = (m==='moodboard'||m==='material') ? '' : 'none';
+  document.getElementById('targetWrap').style.display = m==='material' ? '' : 'none';
+  document.getElementById('drawToolsWrap').style.display = m==='draw' ? '' : 'none';
+  document.getElementById('drawToolbar').classList.toggle('visible', m==='draw');
+  document.getElementById('drawHint').style.display = m==='draw' ? 'block' : 'none';
+
+  if (m==='material') {
+    document.getElementById('slot2label').textContent = '재질 샘플';
+    document.getElementById('slot2tag').textContent = 'Material';
+    document.getElementById('hint2').textContent = '재질 샘플 업로드';
+  } else {
+    document.getElementById('slot2label').textContent = '무드보드';
+    document.getElementById('slot2tag').textContent = 'Moodboard';
+    document.getElementById('hint2').textContent = '무드보드 업로드';
+  }
+
+  // Enable/disable draw canvas
+  const dc = document.getElementById('drawCanvas');
+  dc.style.display = m==='draw' ? 'block' : 'none';
+
+  renderPresets(m);
+  const p = MODES[m].presets[0];
+  if (p.prompt !== '[대상 입력 후 클릭]') document.getElementById('prompt').value = p.prompt;
+}
+
+function renderPresets(m) {
+  const grid = document.getElementById('presetGrid');
+  grid.innerHTML = '';
+  MODES[m].presets.forEach((p,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.innerHTML = `<span class="preset-tag">${p.tag}</span>${p.label}`;
+    btn.onclick = () => {
+      if (p.prompt === '[대상 입력 후 클릭]') {
+        const t = document.getElementById('matTarget').value.trim() || '지정 부분';
+        document.getElementById('prompt').value =
+`Use the FIRST image as interior source.\nApply the material/texture from the SECOND image to the ${t}.\nMaintain all other materials, camera angle, furniture positions exactly.\nResult must look like a real photograph.`;
+      } else {
+        document.getElementById('prompt').value = p.prompt;
+      }
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ─── Upload ───────────────────────────────────────
+function triggerUpload(slot) { document.getElementById('file'+slot).click(); }
+
+function loadSlot(slot, input) {
+  const file = input.files[0];
+  if (!file) return;
+  mimes[slot] = file.type;
+  const reader = new FileReader();
+  reader.onload = e => {
+    imgs[slot] = e.target.result.split(',')[1];
+    const slotEl = document.getElementById('slot'+slot);
+    slotEl.classList.add('filled');
+    document.getElementById('hint'+slot).style.display = 'none';
+    let img = slotEl.querySelector('img');
+    if (!img) { img = document.createElement('img'); slotEl.insertBefore(img, slotEl.firstChild); }
+    img.src = e.target.result;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+
+    // If slot 1, also set base canvas for draw mode
+    if (slot === 1) setupDrawCanvas(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Draw canvas ──────────────────────────────────
+function setupDrawCanvas(src) {
+  const wrapper = document.getElementById('canvasWrapper');
+  const baseImg = document.getElementById('baseCanvas');
+  const dc = document.getElementById('drawCanvas');
+  const placeholder = document.getElementById('canvasPlaceholder');
+
+  placeholder.style.display = 'none';
+  baseImg.style.display = 'block';
+  baseImg.src = src;
+
+  baseImg.onload = () => {
+    dc.width = baseImg.naturalWidth;
+    dc.height = baseImg.naturalHeight;
+    drawCtx = dc.getContext('2d');
+    drawCtx.lineCap = 'round';
+    drawCtx.lineJoin = 'round';
+  };
+
+  // Draw events
+  dc.addEventListener('mousedown', startDraw);
+  dc.addEventListener('mousemove', doDraw);
+  dc.addEventListener('mouseup', stopDraw);
+  dc.addEventListener('mouseleave', stopDraw);
+
+  // Touch events
+  dc.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); });
+  dc.addEventListener('touchmove', e => { e.preventDefault(); doDraw(e.touches[0]); });
+  dc.addEventListener('touchend', stopDraw);
+}
+
+function getPos(e) {
+  const dc = document.getElementById('drawCanvas');
+  const rect = dc.getBoundingClientRect();
+  const scaleX = dc.width / rect.width;
+  const scaleY = dc.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+
+function startDraw(e) {
+  if (mode !== 'draw') return;
+  drawing = true;
+  const pos = getPos(e);
+  drawCtx.beginPath();
+  drawCtx.moveTo(pos.x, pos.y);
+}
+
+function doDraw(e) {
+  if (!drawing || mode !== 'draw') return;
+  const pos = getPos(e);
+  if (drawTool === 'eraser') {
+    drawCtx.globalCompositeOperation = 'destination-out';
+    drawCtx.lineWidth = brushSz * 3;
+  } else {
+    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.strokeStyle = drawColor;
+    drawCtx.lineWidth = brushSz;
+  }
+  drawCtx.lineTo(pos.x, pos.y);
+  drawCtx.stroke();
+  drawCtx.beginPath();
+  drawCtx.moveTo(pos.x, pos.y);
+}
+
+function stopDraw() { drawing = false; }
+
+function setTool(t) {
+  drawTool = t;
+  ['pen','eraser'].forEach(k => {
+    document.getElementById('tool-'+k)?.classList.toggle('active', k===t);
+  });
+}
+
+function setColor(c, el) {
+  drawColor = c;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  if (drawTool === 'eraser') setTool('pen');
+}
+
+function clearCanvas() {
+  if (drawCtx) {
+    const dc = document.getElementById('drawCanvas');
+    drawCtx.clearRect(0, 0, dc.width, dc.height);
+  }
+}
+
+document.getElementById('brushSize').addEventListener('input', e => {
+  brushSz = parseInt(e.target.value);
+  document.getElementById('brushSizeLabel').textContent = brushSz + 'px';
+});
+
+// ─── Merge canvas for draw mode ───────────────────
+function getMergedImage() {
+  return new Promise(resolve => {
+    const baseImgEl = document.getElementById('baseCanvas');
+    const drawCanvasEl = document.getElementById('drawCanvas');
+
+    const merged = document.createElement('canvas');
+    merged.width = drawCanvasEl.width;
+    merged.height = drawCanvasEl.height;
+    const ctx = merged.getContext('2d');
+
+    ctx.drawImage(baseImgEl, 0, 0, merged.width, merged.height);
+    ctx.drawImage(drawCanvasEl, 0, 0);
+
+    merged.toBlob(blob => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result.split(',')[1]);
+      reader.readAsDataURL(blob);
+    }, 'image/png');
+  });
+}
+
+// ─── Render ───────────────────────────────────────
+async function startRender() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const model = document.getElementById('modelSelect').value;
+  const prompt = document.getElementById('prompt').value.trim();
+
+  hideErr();
+
+  if (!apiKey) { showErr('API Key를 입력해주세요.'); return; }
+  if (!imgs[1] && mode !== 'draw') { showErr('소스 이미지를 업로드해주세요.'); return; }
+  if (mode === 'draw' && !document.getElementById('baseCanvas').src) { showErr('소스 이미지를 업로드해주세요.'); return; }
+  if ((mode==='moodboard'||mode==='material') && !imgs[2]) {
+    showErr(mode==='moodboard'?'무드보드 이미지를 업로드해주세요.':'재질 샘플 이미지를 업로드해주세요.');
+    return;
+  }
+  if (!prompt) { showErr('프롬프트를 입력해주세요.'); return; }
+
+  const btn = document.getElementById('renderBtn');
+  btn.disabled = true; btn.textContent = '렌더링 중...';
+
+  document.getElementById('resultWrap').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">AI 렌더링 처리 중</div>
+    </div>`;
+  document.getElementById('resultActions').style.display = 'none';
+
+  const parts = [];
+
+  if (mode === 'draw') {
+    // Merge base + drawing
+    const mergedB64 = await getMergedImage();
+    parts.push({ inline_data: { mime_type: 'image/png', data: mergedB64 } });
+  } else {
+    parts.push({ inline_data: { mime_type: mimes[1], data: imgs[1] } });
+    if ((mode==='moodboard'||mode==='material') && imgs[2]) {
+      parts.push({ inline_data: { mime_type: mimes[2], data: imgs[2] } });
+    }
+  }
+
+  parts.push({ text: prompt });
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{parts}],
+          generationConfig:{ responseModalities:['IMAGE','TEXT'], responseMimeType:'text/plain' }
+        })
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) { showErr('API 오류: '+(data?.error?.message||'알 수 없는 오류')); resetBtn(); return; }
+
+    let imgData=null, imgMime='image/png';
+    for (const p of (data?.candidates?.[0]?.content?.parts||[])) {
+      if (p.inlineData) { imgData=p.inlineData.data; imgMime=p.inlineData.mimeType||'image/png'; break; }
+    }
+
+    if (!imgData) { showErr('이미지 생성 실패. 다시 시도해주세요.'); resetBtn(); return; }
+
+    lastResult = `data:${imgMime};base64,${imgData}`;
+    const modeNames = {basic:'기본변환',moodboard:'무드보드',material:'재질지정',draw:'드로잉'};
+
+    document.getElementById('resultWrap').innerHTML = `
+      <img src="${lastResult}" style="max-width:100%;max-height:420px;object-fit:contain;" alt="result">`;
+    document.getElementById('resultActions').style.display = 'flex';
+
+  } catch(err) {
+    showErr('오류: '+err.message);
+    document.getElementById('resultWrap').innerHTML = `<div style="font-size:12px;color:#333;">렌더링 실패</div>`;
+  }
+
+  resetBtn();
+}
+
+function resetBtn() {
+  const btn = document.getElementById('renderBtn');
+  btn.disabled=false; btn.textContent='✦ Render';
+}
+
+function showErr(m) { const e=document.getElementById('errMsg'); e.style.display='block'; e.textContent=m; }
+function hideErr() { document.getElementById('errMsg').style.display='none'; }
+
+function downloadResult() {
+  if (!lastResult) return;
+  const a = document.createElement('a');
+  a.href = lastResult; a.download = `rawgo_${mode}_${Date.now()}.png`; a.click();
+}
+
+function useResultAsSource() {
+  if (!lastResult) return;
+  // Set result as new source image
+  imgs[1] = lastResult.split(',')[1];
+  mimes[1] = 'image/png';
+  const slotEl = document.getElementById('slot1');
+  slotEl.classList.add('filled');
+  document.getElementById('hint1').style.display = 'none';
+  let img = slotEl.querySelector('img');
+  if (!img) { img = document.createElement('img'); slotEl.insertBefore(img, slotEl.firstChild); }
+  img.src = lastResult;
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+  setupDrawCanvas(lastResult);
+  alert('결과물이 소스 이미지로 설정되었습니다.');
+}
+
+// Init
+setMode('basic');
+</script>
+</body>
+</html>
