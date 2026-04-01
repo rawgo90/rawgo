@@ -897,44 +897,14 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
       <!-- VR 뷰어 -->
       <div class="vr-viewer-wrap">
         <p class="vr-label">Live 360° 미리보기 — 드래그로 시점을 돌려보세요</p>
-        <div id="vr-canvas-wrap" style="position:relative;">
-          <iframe
-            id="vr-iframe"
-            src=""
-            style="width:100%;height:100%;border:none;display:block;"
-            allowfullscreen
-            loading="lazy">
-          </iframe>
-          <!-- 로딩 전 플레이스홀더 -->
-          <div id="vr-placeholder" style="
-            position:absolute;inset:0;
-            display:flex;flex-direction:column;
-            align-items:center;justify-content:center;
-            background:#0d1520;gap:1.2rem;cursor:pointer;
-          " onclick="launchVR()">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.7">
-              <circle cx="32" cy="32" r="30" stroke="#b89c6e" stroke-width="1.5" stroke-dasharray="4 3"/>
-              <path d="M20 32 Q32 18 44 32 Q32 46 20 32Z" stroke="#b89c6e" stroke-width="1.5" fill="none"/>
-              <circle cx="32" cy="32" r="5" stroke="#b89c6e" stroke-width="1.5"/>
-              <circle cx="32" cy="32" r="2" fill="#b89c6e"/>
-            </svg>
-            <div style="text-align:center;">
-              <p style="font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;color:#b89c6e;margin-bottom:0.4rem;">VR 워크스루 체험</p>
-              <p style="font-size:0.8rem;color:#7a746a;">클릭하여 VR 투어 시작</p>
-            </div>
-            <div style="
-              font-family:'Syne',sans-serif;font-size:0.7rem;letter-spacing:0.12em;
-              text-transform:uppercase;padding:0.7rem 1.8rem;
-              border:1px solid rgba(184,156,110,0.5);color:#b89c6e;
-              transition:all 0.3s;
-            ">Enter VR Tour →</div>
-          </div>
+        <div id="vr-canvas-wrap">
+          <canvas id="vr-canvas"></canvas>
         </div>
         <p class="vr-hint">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M7 11.5V14m0-2.5V9m0 2.5h2.5M17 11.5V14m0-2.5V9m0 2.5h-2.5M3 8h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
           </svg>
-          드래그로 시점을 360° 회전 · 화살표로 공간 이동 · Drag to explore
+          드래그로 시점을 360° 회전할 수 있습니다 · Drag to explore the space
         </p>
       </div>
       <!-- 설명 -->
@@ -1138,6 +1108,9 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
 
 <!-- ════ SCRIPTS ════ -->
 
+<!-- three.js for VR viewer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script>
 /* ── 이메일 복사 ── */
 function copyEmail() {
@@ -1166,15 +1139,138 @@ document.querySelectorAll('.works-tab').forEach(tab => {
   });
 });
 
-/* ── VR iframe 런치 ── */
-function launchVR() {
-  const placeholder = document.getElementById('vr-placeholder');
-  const iframe = document.getElementById('vr-iframe');
-  iframe.src = 'images/vr/index.html';
-  placeholder.style.display = 'none';
-}
+/* ── VR 360° 뷰어 (three.js) ── */
+let vrInited = false;
 function initVR() {
-  // VR 탭 클릭 시 호출 — 플레이스홀더 유지, 클릭 시 launchVR() 실행
+  if (vrInited) return;
+  vrInited = true;
+
+  const wrap = document.getElementById('vr-canvas-wrap');
+  const canvas = document.getElementById('vr-canvas');
+  const W = wrap.clientWidth;
+  const H = wrap.clientHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, W / H, 0.1, 1000);
+
+  /* ══════════════════════════════════════════
+     파노라마 이미지 교체 방법:
+     아래 textureUrl 을 실제 360° 이미지 경로로 바꾸세요.
+
+     예시 (같은 폴더):
+       const textureUrl = 'panorama/living_room.jpg';
+
+     예시 (웹 URL):
+       const textureUrl = 'https://yourserver.com/panorama.jpg';
+
+     이미지는 등장방형(Equirectangular) 포맷 권장.
+     2:1 비율 (예: 8000×4000px)
+  ══════════════════════════════════════════ */
+  const textureUrl = null; // ← 여기에 경로 입력
+
+  /* 샘플 시각화 (이미지 없을 때) */
+  function buildDemoScene() {
+    const geo = new THREE.SphereGeometry(10, 64, 32);
+    geo.scale(-1, 1, 1);
+
+    /* 간단한 그라데이션 캔버스 텍스처 */
+    const tc = document.createElement('canvas');
+    tc.width = 1024; tc.height = 512;
+    const ctx = tc.getContext('2d');
+    const grd = ctx.createLinearGradient(0, 0, 0, 512);
+    grd.addColorStop(0,   '#0d1018');
+    grd.addColorStop(0.4, '#1a1a0e');
+    grd.addColorStop(1,   '#0a0a0a');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    /* 벽·바닥 라인 패턴 */
+    ctx.strokeStyle = 'rgba(184,156,110,0.2)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < 1024; x += 80) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+    }
+    for (let y = 0; y < 512; y += 80) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+    }
+    /* 창문 빛 */
+    const light = ctx.createRadialGradient(300, 200, 0, 300, 200, 180);
+    light.addColorStop(0, 'rgba(184,156,110,0.15)');
+    light.addColorStop(1, 'rgba(184,156,110,0)');
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    /* "SAMPLE VR" 텍스트 */
+    ctx.fillStyle = 'rgba(184,156,110,0.25)';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('SAMPLE VR — Replace with your panorama image', 512, 260);
+
+    const tex = new THREE.CanvasTexture(tc);
+    return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
+  }
+
+  if (textureUrl) {
+    new THREE.TextureLoader().load(textureUrl, tex => {
+      const geo = new THREE.SphereGeometry(10, 64, 32);
+      geo.scale(-1, 1, 1);
+      scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex })));
+    });
+  } else {
+    scene.add(buildDemoScene());
+  }
+
+  /* 드래그 컨트롤 */
+  let isDragging = false, prevX = 0, prevY = 0;
+  let lon = 0, lat = 0;
+  const onDown = e => { isDragging = true; prevX = (e.touches ? e.touches[0].clientX : e.clientX); prevY = (e.touches ? e.touches[0].clientY : e.clientY); };
+  const onUp   = () => { isDragging = false; };
+  const onMove = e => {
+    if (!isDragging) return;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    lon -= (cx - prevX) * 0.3;
+    lat += (cy - prevY) * 0.2;
+    lat = Math.max(-85, Math.min(85, lat));
+    prevX = cx; prevY = cy;
+  };
+  wrap.addEventListener('mousedown', onDown);
+  wrap.addEventListener('touchstart', onDown, { passive: true });
+  window.addEventListener('mouseup', onUp);
+  window.addEventListener('touchend', onUp);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: true });
+
+  /* auto-rotate when idle */
+  let lastInteract = Date.now();
+  wrap.addEventListener('mousedown', () => lastInteract = Date.now());
+  wrap.addEventListener('touchstart', () => lastInteract = Date.now(), { passive: true });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!isDragging && Date.now() - lastInteract > 3000) lon += 0.05;
+    const phi   = THREE.MathUtils.degToRad(90 - lat);
+    const theta = THREE.MathUtils.degToRad(lon);
+    camera.lookAt(
+      Math.sin(phi) * Math.cos(theta),
+      Math.cos(phi),
+      Math.sin(phi) * Math.sin(theta)
+    );
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* resize */
+  window.addEventListener('resize', () => {
+    const nW = wrap.clientWidth, nH = wrap.clientHeight;
+    renderer.setSize(nW, nH);
+    camera.aspect = nW / nH;
+    camera.updateProjectionMatrix();
+  });
 }
 
 /* ── YouTube 라이트박스 ── */
