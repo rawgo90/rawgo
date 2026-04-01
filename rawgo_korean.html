@@ -285,6 +285,20 @@ h2 em { font-style: italic; color: var(--c-gold-light); }
   gap: 1rem;
   align-items: start;
 }
+/* ── Arch/Interior: 4열 자동 로드 그리드 ── */
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+.arch-grid .render-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.arch-grid .render-item:hover img { transform: scale(1.03); }
 .render-item {
   position: relative;
   overflow: hidden;
@@ -318,17 +332,8 @@ h2 em { font-style: italic; color: var(--c-gold-light); }
   color: var(--c-text-muted);
   opacity: 0.6;
 }
-.render-overlay {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 1.2rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.render-item:hover .render-overlay { opacity: 1; }
-.render-cat { font-family: 'Syne', sans-serif; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--c-gold); margin-bottom: 0.3rem; }
-.render-title { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--c-white); }
+.render-cat { display: none; }
+.render-title { display: none; }
 
 /* ── VR 뷰어 ── */
 .vr-section { display: flex; gap: 3rem; align-items: flex-start; flex-wrap: wrap; }
@@ -563,6 +568,7 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
   .hero { padding: 0 1.5rem 4rem; }
   .services-grid { grid-template-columns: 1fr; }
   .render-grid { grid-template-columns: repeat(2, 1fr); }
+  .arch-grid { grid-template-columns: repeat(2, 1fr); }
   .anim-grid { grid-template-columns: 1fr; }
   .process-steps { grid-template-columns: 1fr 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -573,6 +579,7 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
 @media (max-width: 600px) {
   nav ul { display: none; }
   .render-grid { grid-template-columns: 1fr; }
+  .arch-grid { grid-template-columns: repeat(2, 1fr); }
   .process-steps { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .works-tab { padding: 0.7rem 1.1rem; font-size: 0.68rem; letter-spacing: 0.08em; }
@@ -700,201 +707,22 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
   <!-- 탭 버튼 -->
   <div class="works-tabs-wrap">
   <div class="works-tabs">
-    <button class="works-tab active" data-tab="exterior">Exterior</button>
-    <button class="works-tab" data-tab="residence">Residence</button>
-    <button class="works-tab" data-tab="office">Office</button>
-    <button class="works-tab" data-tab="commercial">Commercial</button>
-    <button class="works-tab" data-tab="furniture">Design Furniture</button>
-    <button class="works-tab" data-tab="iso">ISO / Floorplan</button>
+    <button class="works-tab active" data-tab="arch">Arch / Interior</button>
     <button class="works-tab" data-tab="vr">VR Walkthrough</button>
-    <button class="works-tab" data-tab="animation">Animation</button>
+    <button class="works-tab" data-tab="video">Video</button>
   </div>
   </div>
 
-  <!-- ── Exterior ── -->
-  <div class="works-panel active" id="panel-exterior">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_1.jpg" alt="Exterior 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_2.jpg" alt="Exterior 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_3.jpg" alt="Exterior 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_4.jpg" alt="Exterior 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_5.jpg" alt="Exterior 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/exterior/exterior_img_6.jpg" alt="Exterior 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Exterior</p><p class="render-title">Exterior Rendering</p></div>
-      </div>
+  <!-- ── Arch / Interior ── -->
+  <div class="works-panel active" id="panel-arch">
+    <div class="arch-grid" id="arch-grid">
+      <!-- JS가 자동으로 이미지를 채워줌 -->
     </div>
   </div>
 
-  <!-- ── Residence ── -->
-  <div class="works-panel" id="panel-residence">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/residence/residence_img_1.jpg" alt="Residence 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/residence/residence_img_2.jpg" alt="Residence 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/residence/residence_img_3.jpg" alt="Residence 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/residence/residence_img_4.jpg" alt="Residence 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/residence/residence_img_5.jpg" alt="Residence 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/residence/residence_img_6.jpg" alt="Residence 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Residence</p><p class="render-title">Residence Rendering</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Office ── -->
-  <div class="works-panel" id="panel-office">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/office/office_img_1.jpg" alt="Office 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/office/office_img_2.jpg" alt="Office 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/office/office_img_3.jpg" alt="Office 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/office/office_img_4.jpg" alt="Office 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/office/office_img_5.jpg" alt="Office 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/office/office_img_6.jpg" alt="Office 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Office</p><p class="render-title">Office Rendering</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Commercial ── -->
-  <div class="works-panel" id="panel-commercial">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_1.jpg" alt="Commercial 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_2.jpg" alt="Commercial 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_3.jpg" alt="Commercial 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_4.jpg" alt="Commercial 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_5.jpg" alt="Commercial 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/commercial/commercial_img_6.jpg" alt="Commercial 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Commercial</p><p class="render-title">Commercial Rendering</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Design Furniture ── -->
-  <div class="works-panel" id="panel-furniture">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_1.jpg" alt="Design Furniture 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_2.jpg" alt="Design Furniture 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_3.jpg" alt="Design Furniture 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_4.jpg" alt="Design Furniture 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_5.jpg" alt="Design Furniture 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/furniture/furniture_img_6.jpg" alt="Design Furniture 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">Design Furniture</p><p class="render-title">Design Furniture Rendering</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── ISO / Floorplan ── -->
-  <div class="works-panel" id="panel-iso">
-    <div class="render-grid">
-      <div class="render-item">
-        <img src="images/iso/iso_img_1.jpg" alt="ISO / Floorplan 1" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/iso/iso_img_2.jpg" alt="ISO / Floorplan 2" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/iso/iso_img_3.jpg" alt="ISO / Floorplan 3" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/iso/iso_img_4.jpg" alt="ISO / Floorplan 4" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/iso/iso_img_5.jpg" alt="ISO / Floorplan 5" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-      <div class="render-item">
-        <img src="images/iso/iso_img_6.jpg" alt="ISO / Floorplan 6" loading="lazy">
-        <div class="render-overlay"><p class="render-cat">ISO / Floorplan</p><p class="render-title">ISO / Floorplan Rendering</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── 탭 5: VR Walkthrough ── -->
+  <!-- ── VR Walkthrough ── -->
   <div class="works-panel" id="panel-vr">
     <div class="vr-section">
-      <!-- VR 뷰어 -->
       <div class="vr-viewer-wrap">
         <p class="vr-label">Live 360° 미리보기 — 드래그로 시점을 돌려보세요</p>
         <div id="vr-canvas-wrap">
@@ -907,56 +735,31 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
           드래그로 시점을 360° 회전할 수 있습니다 · Drag to explore the space
         </p>
       </div>
-      <!-- 설명 -->
       <div class="vr-info">
         <h3>공간 몰입 체험</h3>
-        <p>
-          클라이언트가 시공 전에 공간을 직접 체험할 수 있는 웹 기반 VR 뷰어입니다.
-          별도 앱 설치 없이 브라우저에서 바로 체험 가능합니다.
-        </p>
-        <p style="font-size:0.8rem;color:var(--c-text-muted);margin-bottom:1.5rem;">
-          ※ 아래는 샘플 데모입니다. 실제 납품 시 고객의 공간 파노라마 이미지가 삽입됩니다.
-        </p>
+        <p>클라이언트가 시공 전에 공간을 직접 체험할 수 있는 웹 기반 VR 뷰어입니다. 별도 앱 설치 없이 브라우저에서 바로 체험 가능합니다.</p>
+        <p style="font-size:0.8rem;color:var(--c-text-muted);margin-bottom:1.5rem;">※ 아래는 샘플 데모입니다. 실제 납품 시 고객의 공간 파노라마 이미지가 삽입됩니다.</p>
         <div class="vr-specs">
-          <div class="vr-spec-row">
-            <span class="vr-spec-key">포맷</span>
-            <span class="vr-spec-val">Equirectangular 360°</span>
-          </div>
-          <div class="vr-spec-row">
-            <span class="vr-spec-key">접근 방식</span>
-            <span class="vr-spec-val">웹 브라우저 (앱 불필요)</span>
-          </div>
-          <div class="vr-spec-row">
-            <span class="vr-spec-key">해상도</span>
-            <span class="vr-spec-val">최대 8K 파노라마</span>
-          </div>
-          <div class="vr-spec-row">
-            <span class="vr-spec-key">지원 기기</span>
-            <span class="vr-spec-val">PC · 모바일 · VR 헤드셋</span>
-          </div>
+          <div class="vr-spec-row"><span class="vr-spec-key">포맷</span><span class="vr-spec-val">Equirectangular 360°</span></div>
+          <div class="vr-spec-row"><span class="vr-spec-key">접근 방식</span><span class="vr-spec-val">웹 브라우저 (앱 불필요)</span></div>
+          <div class="vr-spec-row"><span class="vr-spec-key">해상도</span><span class="vr-spec-val">최대 8K 파노라마</span></div>
+          <div class="vr-spec-row"><span class="vr-spec-key">지원 기기</span><span class="vr-spec-val">PC · 모바일 · VR 헤드셋</span></div>
         </div>
       </div>
     </div>
   </div><!-- /panel-vr -->
 
-  <!-- ── 탭 3: Animation ── -->
-  <div class="works-panel" id="panel-animation">
+  <!-- ── Video ── -->
+  <div class="works-panel" id="panel-video">
     <div class="anim-grid">
-
-      <!--
-      영상 추가 방법: 아래 카드를 복사하고 data-yt-id / anim-cat / anim-title 수정
-      -->
-
       <div class="anim-item" data-yt-id="m_pNM642rmg">
         <div class="anim-thumb">
           <img class="anim-yt-thumb"
                src="https://img.youtube.com/vi/m_pNM642rmg/maxresdefault.jpg"
                onerror="this.src='https://img.youtube.com/vi/m_pNM642rmg/hqdefault.jpg'"
-               alt="Animation 1" loading="lazy">
+               alt="Video 1" loading="lazy">
           <div class="play-btn" style="position:absolute;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <polygon points="5,3 19,12 5,21" fill="#b89c6e"/>
-            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="#b89c6e"/></svg>
           </div>
         </div>
         <div class="anim-meta">
@@ -964,17 +767,14 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
           <p class="anim-title">3D 인테리어 시네마틱 릴</p>
         </div>
       </div>
-
       <div class="anim-item" data-yt-id="31svq7J8D8Q">
         <div class="anim-thumb">
           <img class="anim-yt-thumb"
                src="https://img.youtube.com/vi/31svq7J8D8Q/maxresdefault.jpg"
                onerror="this.src='https://img.youtube.com/vi/31svq7J8D8Q/hqdefault.jpg'"
-               alt="Animation 2" loading="lazy">
+               alt="Video 2" loading="lazy">
           <div class="play-btn" style="position:absolute;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <polygon points="5,3 19,12 5,21" fill="#b89c6e"/>
-            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="#b89c6e"/></svg>
           </div>
         </div>
         <div class="anim-meta">
@@ -982,11 +782,11 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
           <p class="anim-title">공간 시각화 쇼릴</p>
         </div>
       </div>
-
     </div>
-  </div><!-- /panel-animation -->
+  </div><!-- /panel-video -->
 
 </section><!-- /works -->
+
 
 
 <!-- STATS -->
@@ -1127,6 +927,32 @@ function copyEmail() {
   });
 }
 
+/* ── Arch/Interior 자동 이미지 로더 ── */
+function loadArchImages() {
+  const grid = document.getElementById('arch-grid');
+  if (!grid || grid.dataset.loaded) return;
+  grid.dataset.loaded = '1';
+
+  let idx = 1;
+  function tryNext() {
+    const img = new Image();
+    const src = `images/arch/arch_img_${String(idx).padStart(2,'0')}.jpg`;
+    img.onload = () => {
+      const item = document.createElement('div');
+      item.className = 'render-item';
+      item.innerHTML = `<img src="${src}" alt="Arch Interior ${idx}" loading="lazy">`;
+      grid.appendChild(item);
+      idx++;
+      tryNext();
+    };
+    img.onerror = () => {
+      // 끝 — 더 이상 파일 없음
+    };
+    img.src = src;
+  }
+  tryNext();
+}
+
 /* ── 탭 전환 ── */
 document.querySelectorAll('.works-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1136,8 +962,12 @@ document.querySelectorAll('.works-tab').forEach(tab => {
     document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
     tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     if (tab.dataset.tab === 'vr') initVR();
+    if (tab.dataset.tab === 'arch') loadArchImages();
   });
 });
+
+// 초기 로드 (첫 탭이 arch)
+loadArchImages();
 
 /* ── VR 360° 뷰어 (three.js) ── */
 let vrInited = false;
