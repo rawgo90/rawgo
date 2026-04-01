@@ -124,17 +124,7 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .hs-link {
-    width: 24px; height: 24px;
-    background: rgba(184,156,110,0.2);
-    border: 2px solid rgba(184,156,110,0.7);
-    border-radius: 50%;
-    animation: pulse-hs 2s infinite;
-  }
-  @keyframes pulse-hs {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(184,156,110,0.4); }
-    50%       { box-shadow: 0 0 0 8px rgba(184,156,110,0); }
-  }
+  /* hotspot: createTooltipFunc로 SVG 직접 주입 */
 </style>
 </head>
 <body>
@@ -164,31 +154,61 @@
 (function () {
   const scenes = APP_DATA.scenes;
 
-  // sceneId → index 맵
+  // sceneId → scene 맵
+  const idToScene = {};
+  scenes.forEach(s => { idToScene[s.id] = s; });
+
+  // 원하는 씬 순서 (name 기준)
+  const ORDER = [
+    '118VR_현관',
+    '118VR_현관팬트리',
+    '118VR_거실',
+    '118VR_주방',
+    '118VR_주방팬트리',
+    '118VR_룸1',
+    '118VR_룸1드레스룸',
+    '118VR_부부욕실',
+    '118VR_룸2',
+    '118VR_룸2드레스룸',
+    '118VR_룸3',
+    '118VR_룸3드레스룸',
+    '118VR_룸4',
+    '118VR_룸4드레스룸',
+    '118VR_가족욕실'
+  ];
+
+  // 순서대로 정렬 (ORDER에 없는 씬은 뒤로)
+  const sorted = [
+    ...ORDER.map(name => scenes.find(s => s.name === name)).filter(Boolean),
+    ...scenes.filter(s => !ORDER.includes(s.name))
+  ];
+
+  // pannellum sceneId: 정렬된 인덱스 기준
+  const nameToIndex = {};
+  sorted.forEach((s, i) => { nameToIndex[s.name] = i; });
+
+  // data.js id → 정렬 인덱스 맵 (핫스팟 target 연결용)
   const idToIndex = {};
-  scenes.forEach((s, i) => { idToIndex[s.id] = i; });
+  sorted.forEach((s, i) => { idToIndex[s.id] = i; });
 
   const pannellumScenes = {};
 
-  scenes.forEach((scene, i) => {
-    const pannId = 'scene_' + i;
-
-    // 이미지 경로: images/씬name.jpg (예: images/118VR_거실.jpg)
+  sorted.forEach((scene, i) => {
+    const pannId  = 'scene_' + i;
     const imgPath = 'images/' + scene.name + '.jpg';
 
-    // 초기 시점 (라디안 → 도)
     const iv    = scene.initialViewParameters;
     const yaw   = iv.yaw   * (180 / Math.PI);
     const pitch = iv.pitch * (180 / Math.PI);
     const hfov  = iv.fov   * (180 / Math.PI);
 
-    // 핫스팟
     const hotSpots = (scene.linkHotspots || []).map(hs => ({
       pitch:    hs.pitch * (180 / Math.PI),
       yaw:      hs.yaw   * (180 / Math.PI),
       type:     'scene',
       sceneId:  'scene_' + idToIndex[hs.target],
-      cssClass: 'hs-link'
+      cssClass: 'hs-link',
+      createTooltipFunc: createHotspot
     }));
 
     pannellumScenes[pannId] = {
@@ -199,29 +219,38 @@
     };
   });
 
+  // 화살표 SVG 핫스팟
+  function createHotspot(el) {
+    el.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" stroke="white" stroke-width="1.5" fill="rgba(0,0,0,0.35)"/>
+        <path d="M12 16V8M8.5 11.5L12 8l3.5 3.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    el.style.cssText = 'background:none;border:none;cursor:pointer;';
+  }
+
   const viewer = pannellum.viewer('viewer', {
     default: {
-      firstScene:                  'scene_0',
-      sceneFadeDuration:           600,
-      autoLoad:                    true,
-      showControls:                false,
-      keyboardZoom:                false,
-      mouseZoom:                   true,
-      draggable:                   true,
-      friction:                    0.15,
-      autoRotate:                  -2,
-      autoRotateInactivityDelay:   4000
+      firstScene:                'scene_0',
+      sceneFadeDuration:         600,
+      autoLoad:                  true,
+      showControls:              false,
+      keyboardZoom:              false,
+      mouseZoom:                 true,
+      draggable:                 true,
+      friction:                  0.15,
+      autoRotate:                -2,
+      autoRotateInactivityDelay: 4000
     },
     scenes: pannellumScenes
   });
 
   // 씬 목록 버튼
   const list = document.getElementById('scene-list');
-  scenes.forEach((scene, i) => {
+  sorted.forEach((scene, i) => {
     const pannId = 'scene_' + i;
-    // "118VR_거실" → "거실" 로 표시
-    const label = scene.name.replace(/^.*118VR_/, '');
-    const btn = document.createElement('button');
+    const label  = scene.name.replace(/^.*118VR_/, '');
+    const btn    = document.createElement('button');
     btn.className = 'scene-btn' + (i === 0 ? ' active' : '');
     btn.innerHTML = `<span class="dot"></span>${label}`;
     btn.onclick = () => {
