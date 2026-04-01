@@ -6,18 +6,17 @@
 <title>RAWGO VR Walkthrough</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; background: #0a0a0a; overflow: hidden; }
-
   #viewer { width: 100%; height: 100%; }
 
-  /* 씬 패널 */
   #scene-panel {
     position: absolute;
     top: 0; left: 0;
     height: 100%;
-    width: 220px;
+    width: 200px;
     background: rgba(10,10,10,0.88);
     backdrop-filter: blur(12px);
     border-right: 1px solid rgba(184,156,110,0.2);
@@ -27,82 +26,77 @@
     transition: transform 0.3s ease;
     overflow-y: auto;
   }
-  #scene-panel.hidden { transform: translateX(-220px); }
+  #scene-panel.hidden { transform: translateX(-200px); }
 
   .panel-header {
-    padding: 1rem 1rem 0.5rem;
+    padding: 1rem 1rem 0.6rem;
     font-family: 'Syne', sans-serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.2em;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: #b89c6e;
     border-bottom: 1px solid rgba(184,156,110,0.15);
     flex-shrink: 0;
   }
-
-  .scene-list { padding: 0.5rem 0; }
+  .scene-list { padding: 0.4rem 0; }
   .scene-btn {
     width: 100%;
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 0.65rem 1rem;
+    padding: 0.6rem 1rem;
     background: none;
     border: none;
     cursor: pointer;
     color: #7a746a;
-    font-family: sans-serif;
-    font-size: 0.78rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
     text-align: left;
     transition: all 0.2s;
   }
   .scene-btn:hover { color: #f7f5f0; background: rgba(184,156,110,0.08); }
   .scene-btn.active { color: #b89c6e; background: rgba(184,156,110,0.12); }
   .scene-btn .dot {
-    width: 6px; height: 6px;
+    width: 5px; height: 5px;
     border-radius: 50%;
     background: rgba(184,156,110,0.3);
     flex-shrink: 0;
   }
   .scene-btn.active .dot { background: #b89c6e; }
 
-  /* 토글 탭 */
   #toggle-tab {
     position: absolute;
     top: 50%;
-    left: 220px;
+    left: 200px;
     transform: translateY(-50%);
     z-index: 11;
     background: rgba(10,10,10,0.88);
     border: 1px solid rgba(184,156,110,0.2);
     border-left: none;
     color: #b89c6e;
-    padding: 0.6rem 0.4rem;
+    padding: 0.6rem 0.35rem;
     cursor: pointer;
     transition: left 0.3s ease;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     line-height: 1;
     backdrop-filter: blur(12px);
   }
   #toggle-tab.collapsed { left: 0; }
 
-  /* 전체화면 버튼 */
   #fullscreen-btn {
     position: absolute;
-    top: 12px; right: 12px;
+    top: 10px; right: 10px;
     z-index: 10;
     background: rgba(10,10,10,0.75);
     border: 1px solid rgba(184,156,110,0.3);
-    color: #b89c6e;
-    width: 36px; height: 36px;
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
     backdrop-filter: blur(8px);
+    transition: all 0.2s;
   }
   #fullscreen-btn:hover { background: rgba(184,156,110,0.15); border-color: #b89c6e; }
 
-  /* 로딩 */
   #loading {
     position: absolute;
     inset: 0;
@@ -115,22 +109,33 @@
     gap: 1rem;
   }
   #loading p {
-    font-family: sans-serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
     color: #b89c6e;
   }
   .spinner {
-    width: 28px; height: 28px;
+    width: 26px; height: 26px;
     border: 2px solid rgba(184,156,110,0.2);
     border-top-color: #b89c6e;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hs-link {
+    width: 24px; height: 24px;
+    background: rgba(184,156,110,0.2);
+    border: 2px solid rgba(184,156,110,0.7);
+    border-radius: 50%;
+    animation: pulse-hs 2s infinite;
+  }
+  @keyframes pulse-hs {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184,156,110,0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(184,156,110,0); }
+  }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -141,128 +146,105 @@
 
 <div id="viewer"></div>
 
-<!-- 씬 패널 -->
 <div id="scene-panel">
   <div class="panel-header">— Scenes</div>
   <div class="scene-list" id="scene-list"></div>
 </div>
 
-<!-- 토글 탭 -->
 <button id="toggle-tab" onclick="togglePanel()">&#9664;</button>
 
-<!-- 전체화면 -->
-<button id="fullscreen-btn" onclick="openFullscreen()" title="전체화면">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b89c6e" stroke-width="1.8">
+<button id="fullscreen-btn" onclick="openFullscreen()">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b89c6e" stroke-width="1.8">
     <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
   </svg>
 </button>
 
 <script src="data.js"></script>
 <script>
-// Marzipano data.js → Pannellum 변환
-(function() {
-  // data.js가 로드되면 APP_DATA 또는 scenarios 변수 존재
-  const raw = (typeof APP_DATA !== 'undefined') ? APP_DATA
-             : (typeof scenarios !== 'undefined') ? { scenes: scenarios }
-             : null;
+(function () {
+  const scenes = APP_DATA.scenes;
 
-  if (!raw || !raw.scenes || raw.scenes.length === 0) {
-    document.getElementById('loading').innerHTML =
-      '<p style="color:#b89c6e;">data.js를 찾을 수 없습니다</p>';
-    return;
-  }
+  // sceneId → index 맵
+  const idToIndex = {};
+  scenes.forEach((s, i) => { idToIndex[s.id] = i; });
 
-  // Pannellum scenes 객체 빌드
   const pannellumScenes = {};
-  const sceneIds = [];
 
-  raw.scenes.forEach((scene, i) => {
-    const id = 'scene_' + i;
-    sceneIds.push({ id, name: scene.name || scene.id || ('Scene ' + (i+1)) });
+  scenes.forEach((scene, i) => {
+    const pannId = 'scene_' + i;
 
-    // 이미지 경로 — Marzipano 기본: images/씬이름.jpg
-    const imgName = scene.id || scene.name || ('scene_' + i);
-    const imgPath = 'images/' + imgName + '.jpg';
+    // 이미지 경로: images/씬name.jpg (예: images/118VR_거실.jpg)
+    const imgPath = 'images/' + scene.name + '.jpg';
 
-    // 초기 시점: Marzipano는 라디안, Pannellum은 도
-    const initView = scene.initialViewParameters || {};
-    const yaw   = initView.yaw   ? (initView.yaw   * 180 / Math.PI) : 0;
-    const pitch = initView.pitch ? (initView.pitch * 180 / Math.PI) : 0;
-    const hfov  = initView.fov   ? (initView.fov   * 180 / Math.PI) : 100;
+    // 초기 시점 (라디안 → 도)
+    const iv    = scene.initialViewParameters;
+    const yaw   = iv.yaw   * (180 / Math.PI);
+    const pitch = iv.pitch * (180 / Math.PI);
+    const hfov  = iv.fov   * (180 / Math.PI);
 
-    // 핫스팟 변환
-    const hotSpots = [];
-    if (scene.linkHotspots) {
-      scene.linkHotspots.forEach(hs => {
-        hotSpots.push({
-          pitch: hs.pitch * 180 / Math.PI,
-          yaw:   hs.yaw   * 180 / Math.PI,
-          type: 'scene',
-          sceneId: 'scene_' + raw.scenes.findIndex(s => s.id === hs.target),
-          cssClass: 'hs-link',
-          createTooltipFunc: createHotspotTooltip,
-          createTooltipArgs: raw.scenes.find(s => s.id === hs.target)?.name || ''
-        });
-      });
-    }
+    // 핫스팟
+    const hotSpots = (scene.linkHotspots || []).map(hs => ({
+      pitch:    hs.pitch * (180 / Math.PI),
+      yaw:      hs.yaw   * (180 / Math.PI),
+      type:     'scene',
+      sceneId:  'scene_' + idToIndex[hs.target],
+      cssClass: 'hs-link'
+    }));
 
-    pannellumScenes[id] = {
-      title: scene.name || '',
+    pannellumScenes[pannId] = {
+      title:    scene.name,
       panorama: imgPath,
       yaw, pitch, hfov,
       hotSpots
     };
   });
 
-  function createHotspotTooltip(el, args) {
-    el.innerHTML = args;
-    el.style.cssText = 'background:rgba(10,10,10,0.8);color:#b89c6e;padding:3px 8px;font-size:11px;letter-spacing:0.1em;border:1px solid rgba(184,156,110,0.4);white-space:nowrap;';
-  }
-
-  // Pannellum 초기화
   const viewer = pannellum.viewer('viewer', {
     default: {
-      firstScene: sceneIds[0].id,
-      sceneFadeDuration: 800,
-      autoLoad: true,
-      showControls: false,
-      keyboardZoom: false,
-      mouseZoom: true,
-      draggable: true,
-      friction: 0.15,
+      firstScene:                  'scene_0',
+      sceneFadeDuration:           600,
+      autoLoad:                    true,
+      showControls:                false,
+      keyboardZoom:                false,
+      mouseZoom:                   true,
+      draggable:                   true,
+      friction:                    0.15,
+      autoRotate:                  -2,
+      autoRotateInactivityDelay:   4000
     },
     scenes: pannellumScenes
   });
 
-  // 씬 목록 버튼 생성
+  // 씬 목록 버튼
   const list = document.getElementById('scene-list');
-  sceneIds.forEach(({ id, name }) => {
+  scenes.forEach((scene, i) => {
+    const pannId = 'scene_' + i;
+    // "118VR_거실" → "거실" 로 표시
+    const label = scene.name.replace(/^.*118VR_/, '');
     const btn = document.createElement('button');
-    btn.className = 'scene-btn' + (id === sceneIds[0].id ? ' active' : '');
-    btn.innerHTML = `<span class="dot"></span>${name}`;
+    btn.className = 'scene-btn' + (i === 0 ? ' active' : '');
+    btn.innerHTML = `<span class="dot"></span>${label}`;
     btn.onclick = () => {
-      viewer.loadScene(id);
+      viewer.loadScene(pannId);
       document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     };
     list.appendChild(btn);
   });
 
-  // 씬 변경 시 버튼 동기화
-  viewer.on('scenechange', (newSceneId) => {
-    document.querySelectorAll('.scene-btn').forEach((btn, i) => {
-      btn.classList.toggle('active', sceneIds[i].id === newSceneId);
+  viewer.on('scenechange', id => {
+    const idx = parseInt(id.replace('scene_', ''));
+    document.querySelectorAll('.scene-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === idx);
     });
   });
 
-  // 로딩 완료
   viewer.on('load', () => {
     document.getElementById('loading').style.display = 'none';
   });
 
 })();
 
-// 패널 토글
 function togglePanel() {
   const panel = document.getElementById('scene-panel');
   const tab   = document.getElementById('toggle-tab');
@@ -271,7 +253,6 @@ function togglePanel() {
   tab.innerHTML = panel.classList.contains('hidden') ? '&#9654;' : '&#9664;';
 }
 
-// 전체화면 — iframe 안에서도 작동하도록 부모 탭 열기
 function openFullscreen() {
   window.open(window.location.href, '_blank');
 }
