@@ -725,8 +725,8 @@ footer { padding: 2rem 3rem; display: flex; justify-content: space-between; alig
     <div class="vr-section">
       <div class="vr-viewer-wrap">
         <p class="vr-label">Live 360° 미리보기 — 드래그로 시점을 돌려보세요</p>
-        <div id="vr-canvas-wrap">
-          <canvas id="vr-canvas"></canvas>
+        <div id="vr-canvas-wrap" style="position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(184,156,110,0.2);overflow:hidden;">
+          <iframe src="vr4/index.html" style="width:100%;height:100%;border:none;display:block;" allowfullscreen></iframe>
         </div>
         <p class="vr-hint">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
